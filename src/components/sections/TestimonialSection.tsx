@@ -68,7 +68,7 @@ const TestimonialSection: React.FC = () => {
   ];
 
   return (
-    <section id="testimonials" className="py-16 bg-gray-50">
+    <section id="testimonials" className="py-16 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
       <Container>
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold mb-4 text-blue-900">Was unsere Mitglieder sagen</h2>

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Container from '../components/ui/Container';
 import Header from '../components/layout/Header';
@@ -8,6 +8,11 @@ import Button from '../components/ui/Button';
 import { ArrowLeft, Shield } from 'lucide-react';
 
 const DatenschutzPage: React.FC = () => {
+  // Scroll to top when component mounts
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   return (
     <div className="font-sans bg-white min-h-screen">
       <Header />
@@ -25,15 +30,13 @@ const DatenschutzPage: React.FC = () => {
               Transparenz über den Umgang mit Ihren Daten in der SHK + Haustechnik Community
             </p>
             
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <Link 
-                to="/"
-                className="inline-flex items-center px-4 py-2 text-blue-700 hover:text-blue-900 transition-colors font-medium border border-blue-300 rounded-lg hover:bg-blue-50"
-              >
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Zurück zur Startseite
-              </Link>
-            </div>
+            <Link 
+              to="/"
+              className="inline-flex items-center px-4 py-2 text-blue-700 hover:text-blue-900 transition-colors font-medium border border-blue-300 rounded-lg hover:bg-blue-50"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Zurück zur Community
+            </Link>
           </div>
         </Container>
       </section>
@@ -97,10 +100,7 @@ const DatenschutzPage: React.FC = () => {
               <p className="text-gray-700 mb-6">
                 Werden Sie Teil unserer Community und profitieren Sie vom sicheren Austausch mit anderen SHK-Profis.
               </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button variant="primary" size="lg">
-                  Jetzt Mitglied werden
-                </Button>
+              <div className="flex justify-center">
                 <Link to="/">
                   <Button variant="outline" size="lg">
                     Zurück zur Startseite

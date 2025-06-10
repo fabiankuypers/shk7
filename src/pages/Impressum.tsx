@@ -44,9 +44,12 @@ const Impressum: React.FC = () => {
                   className="flex items-center"
                 >
                   <ArrowLeft className="h-4 w-4 mr-2" />
-                  Zurück zur Startseite
+                  Zurück zur Community
                 </Button>
-                
+                <span className="text-gray-500">oder</span>
+                <Button variant="outline">
+                  Jetzt Mitglied werden
+                </Button>
               </div>
             </div>
           </div>
