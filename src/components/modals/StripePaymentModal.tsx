@@ -107,23 +107,64 @@ const PaymentForm: React.FC<{ onSuccess: () => void; onClose: () => void }> = ({
     }
 
     try {
-      // For demo purposes, we'll simulate a successful payment
-      // In production, you would create a payment intent on your backend
-      
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // For now, redirect to the actual Stripe payment link
-      // In production, you would handle the payment here
-      window.open('https://buy.stripe.com/eVq14ofeI0NAesv46XcV203', '_blank');
-      
-      // Simulate success for demo
-      setTimeout(() => {
-        onSuccess();
-      }, 1000);
+      // Create payment method
+      const { error: paymentMethodError, paymentMethod } = await stripe.createPaymentMethod({
+        type: 'card',
+        card: cardElement,
+        billing_details: {
+          name: name,
+          email: email,
+        },
+      });
+
+      if (paymentMethodError) {
+        setError(paymentMethodError.message || 'Ein Fehler bei der Zahlungsmethode ist aufgetreten');
+        setIsLoading(false);
+        return;
+      }
+
+      // Create payment intent on your backend
+      const response = await fetch('/api/create-payment-intent', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          payment_method_id: paymentMethod.id,
+          email: email,
+          name: name,
+          company: company,
+          amount: 0, // 0 for trial, will be 900 cents (9 EUR) for subscription
+        }),
+      });
+
+      const paymentIntent = await response.json();
+
+      if (paymentIntent.error) {
+        setError(paymentIntent.error);
+        setIsLoading(false);
+        return;
+      }
+
+      // Confirm payment if needed
+      if (paymentIntent.requires_action) {
+        const { error: confirmError } = await stripe.confirmCardPayment(
+          paymentIntent.client_secret
+        );
+
+        if (confirmError) {
+          setError(confirmError.message || 'Zahlung konnte nicht bestätigt werden');
+          setIsLoading(false);
+          return;
+        }
+      }
+
+      // Success!
+      onSuccess();
       
     } catch (err) {
-      setError('Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.');
+      console.error('Payment error:', err);
+      setError('Ein unerwarteter Fehler ist aufgetreten. Bitte versuchen Sie es erneut.');
     } finally {
       setIsLoading(false);
     }
