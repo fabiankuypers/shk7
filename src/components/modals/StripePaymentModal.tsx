@@ -123,19 +123,6 @@ const PaymentForm: React.FC<{ onSuccess: () => void; onClose: () => void }> = ({
         return;
       }
 
-      // TEMPORÄR: Simuliere erfolgreiche Zahlung für Test Mode
-      console.log('Test Mode: Payment Method erstellt:', paymentMethod.id);
-      console.log('Kundendaten:', { email, name, company });
-      
-      // Simuliere Backend-Aufruf
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // Simuliere Erfolg
-      onSuccess();
-      
-      /* 
-      // PRODUKTIV: Diese Implementierung wird später aktiviert
-      
       // Create payment intent on your backend
       const response = await fetch('/api/create-payment-intent', {
         method: 'POST',
@@ -151,18 +138,18 @@ const PaymentForm: React.FC<{ onSuccess: () => void; onClose: () => void }> = ({
         }),
       });
 
-      const paymentIntent = await response.json();
+      const paymentResult = await response.json();
 
-      if (paymentIntent.error) {
-        setError(paymentIntent.error);
+      if (paymentResult.error) {
+        setError(paymentResult.error);
         setIsLoading(false);
         return;
       }
 
       // Confirm payment if needed
-      if (paymentIntent.requires_action) {
+      if (paymentResult.requires_action) {
         const { error: confirmError } = await stripe.confirmCardPayment(
-          paymentIntent.client_secret
+          paymentResult.client_secret
         );
 
         if (confirmError) {
@@ -174,7 +161,6 @@ const PaymentForm: React.FC<{ onSuccess: () => void; onClose: () => void }> = ({
 
       // Success!
       onSuccess();
-      */
       
     } catch (err) {
       console.error('Payment error:', err);
