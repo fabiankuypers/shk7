@@ -8,7 +8,7 @@ interface StripePaymentModalProps {
   onClose: () => void;
 }
 
-const stripePromise = loadStripe('pk_test_51P5HBEK3uE2SBg2ea1uY2higpxXgWVstUGLhQfVul2rgMozSFujGK2JSYhuEbH5owAfqLeve3ySQ7TgpK0e429z900VZO2JEXv');
+const stripePromise = loadStripe('pk_test_51P5HBEK3uE2SBg2ekfr4uDIZB7kIbcyPZwnC2PKEpsK4E582KFhmWJMSJRXi7wlUqzOyIJp53WBaco8ZhkoTqog3006AyvcgZK');
 
 // Success Modal Component
 const SuccessModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen, onClose }) => {
