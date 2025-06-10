@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import Container from '../ui/Container';
 import Button from '../ui/Button';
-import PaymentModal from '../modals/PaymentModal';
+import StripePaymentModal from '../modals/StripePaymentModal';
 
 const HeroSection: React.FC = () => {
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
@@ -61,7 +61,7 @@ const HeroSection: React.FC = () => {
         </div>
       </section>
 
-      <PaymentModal 
+      <StripePaymentModal 
         isOpen={isPaymentModalOpen} 
         onClose={() => setIsPaymentModalOpen(false)} 
       />

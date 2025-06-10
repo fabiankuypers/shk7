@@ -3,7 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { Users, ArrowLeft } from 'lucide-react';
 import Container from '../ui/Container';
 import Button from '../ui/Button';
-import PaymentModal from '../modals/PaymentModal';
+import StripePaymentModal from '../modals/StripePaymentModal';
 
 const Header: React.FC = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -120,7 +120,7 @@ const Header: React.FC = () => {
         </Container>
       </header>
 
-      <PaymentModal 
+      <StripePaymentModal 
         isOpen={isPaymentModalOpen} 
         onClose={() => setIsPaymentModalOpen(false)} 
       />

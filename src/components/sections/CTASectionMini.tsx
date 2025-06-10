@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import Button from '../ui/Button';
-import PaymentModal from '../modals/PaymentModal';
+import StripePaymentModal from '../modals/StripePaymentModal';
 
 const CTASectionMini: React.FC = () => {
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
@@ -26,7 +26,7 @@ const CTASectionMini: React.FC = () => {
         </Button>
       </div>
 
-      <PaymentModal 
+      <StripePaymentModal 
         isOpen={isPaymentModalOpen} 
         onClose={() => setIsPaymentModalOpen(false)} 
       />
