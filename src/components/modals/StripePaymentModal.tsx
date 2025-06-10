@@ -8,7 +8,7 @@ interface StripePaymentModalProps {
   onClose: () => void;
 }
 
-const stripePromise = loadStripe('pk_live_51P5HBEK3uE2SBg2ea1uY2higpxXgWVstUGLhQfVul2rgMozSFujGK2JSYhuEbH5owAfqLeve3ySQ7TgpK0e429z900VZO2JEXv');
+const stripePromise = loadStripe('pk_test_51P5HBEK3uE2SBg2ea1uY2higpxXgWVstUGLhQfVul2rgMozSFujGK2JSYhuEbH5owAfqLeve3ySQ7TgpK0e429z900VZO2JEXv');
 
 // Success Modal Component
 const SuccessModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen, onClose }) => {
@@ -107,21 +107,6 @@ const PaymentForm: React.FC<{ onSuccess: () => void; onClose: () => void }> = ({
     }
 
     try {
-      // TEMPORÄR: Für Test Mode verwenden wir den Test Payment Link
-      // Das wird später durch die echte Integration ersetzt
-      console.log('Test Mode: Weiterleitung zum Test Payment Link');
-      
-      // Öffne Test Payment Link
-      window.open('https://buy.stripe.com/test_7sY00keaE3ZMckn9rhcV200', '_blank');
-      
-      // Simuliere Erfolg nach kurzer Verzögerung
-      setTimeout(() => {
-        onSuccess();
-      }, 2000);
-
-      /* 
-      // PRODUKTIV: Diese Implementierung wird später aktiviert
-      
       // Create payment method
       const { error: paymentMethodError, paymentMethod } = await stripe.createPaymentMethod({
         type: 'card',
@@ -138,6 +123,19 @@ const PaymentForm: React.FC<{ onSuccess: () => void; onClose: () => void }> = ({
         return;
       }
 
+      // TEMPORÄR: Simuliere erfolgreiche Zahlung für Test Mode
+      console.log('Test Mode: Payment Method erstellt:', paymentMethod.id);
+      console.log('Kundendaten:', { email, name, company });
+      
+      // Simuliere Backend-Aufruf
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // Simuliere Erfolg
+      onSuccess();
+      
+      /* 
+      // PRODUKTIV: Diese Implementierung wird später aktiviert
+      
       // Create payment intent on your backend
       const response = await fetch('/api/create-payment-intent', {
         method: 'POST',
@@ -249,7 +247,7 @@ const PaymentForm: React.FC<{ onSuccess: () => void; onClose: () => void }> = ({
               <div className="ml-3">
                 <h4 className="text-sm font-medium text-yellow-800 mb-1">Test Modus aktiv</h4>
                 <p className="text-xs text-yellow-700">
-                  Sie werden zum Stripe Test Checkout weitergeleitet. Verwenden Sie Testkreditkarten wie 4242 4242 4242 4242.
+                  Verwenden Sie Testkreditkarten wie 4242 4242 4242 4242. Die Zahlung wird direkt hier verarbeitet.
                 </p>
               </div>
             </div>
@@ -319,7 +317,10 @@ const PaymentForm: React.FC<{ onSuccess: () => void; onClose: () => void }> = ({
 
           {/* Payment Information */}
           <div className="mb-6">
-            <h4 className="font-semibold text-gray-900 mb-3">Zahlungsinformationen</h4>
+            <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
+              <CreditCard className="w-5 h-5 mr-2" />
+              Zahlungsinformationen
+            </h4>
             <div className="border border-gray-300 rounded-lg p-3 focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500 transition-all">
               <CardElement options={cardElementOptions} />
             </div>
@@ -363,7 +364,7 @@ const PaymentForm: React.FC<{ onSuccess: () => void; onClose: () => void }> = ({
             {isLoading ? (
               <div className="flex items-center justify-center">
                 <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                Weiterleitung zu Stripe...
+                Zahlung wird verarbeitet...
               </div>
             ) : (
               'Jetzt 90 Tage kostenfrei starten'
