@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import Container from '../ui/Container';
 import Button from '../ui/Button';
-import StripePaymentModal from '../modals/StripePaymentModal';
+import ContactModal from '../modals/ContactModal';
 
 const HeroSection: React.FC = () => {
-  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [isContactModalOpen, setIsContactModalOpen] = useState(false);
 
   const handleCTAClick = () => {
-    setIsPaymentModalOpen(true);
+    setIsContactModalOpen(true);
   };
 
   return (
@@ -35,8 +35,8 @@ const HeroSection: React.FC = () => {
                 animate={true}
                 className="flex flex-col items-center gap-1"
               >
-                <span className="text-lg font-semibold">Jetzt Mitglied werden</span>
-                <span className="text-sm font-normal opacity-80">3 Monate kostenfrei – danach 9 €/Monat</span>
+                <span className="text-lg font-semibold">Jetzt Kontakt aufnehmen</span>
+                <span className="text-sm font-normal opacity-80">Kostenlose Beratung</span>
               </Button>
               <Button 
                 variant="outline" 
@@ -61,9 +61,9 @@ const HeroSection: React.FC = () => {
         </div>
       </section>
 
-      <StripePaymentModal 
-        isOpen={isPaymentModalOpen} 
-        onClose={() => setIsPaymentModalOpen(false)} 
+      <ContactModal 
+        isOpen={isContactModalOpen} 
+        onClose={() => setIsContactModalOpen(false)} 
       />
     </>
   );

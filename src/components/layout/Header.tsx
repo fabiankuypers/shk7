@@ -3,11 +3,11 @@ import { Link, useLocation } from 'react-router-dom';
 import { Users, ArrowLeft } from 'lucide-react';
 import Container from '../ui/Container';
 import Button from '../ui/Button';
-import StripePaymentModal from '../modals/StripePaymentModal';
+import ContactModal from '../modals/ContactModal';
 
 const Header: React.FC = () => {
   const [isScrolled, setIsScrolled] = useState(false);
-  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [isContactModalOpen, setIsContactModalOpen] = useState(false);
   const location = useLocation();
   const isHomePage = location.pathname === '/';
 
@@ -21,7 +21,7 @@ const Header: React.FC = () => {
   }, []);
 
   const handleCTAClick = () => {
-    setIsPaymentModalOpen(true);
+    setIsContactModalOpen(true);
   };
 
   // Scroll to top when navigating to subpages
@@ -113,16 +113,16 @@ const Header: React.FC = () => {
                 animate={isHomePage}
                 size={isHomePage ? "md" : "sm"}
               >
-                Mitglied werden
+                Kontakt aufnehmen
               </Button>
             </nav>
           </div>
         </Container>
       </header>
 
-      <StripePaymentModal 
-        isOpen={isPaymentModalOpen} 
-        onClose={() => setIsPaymentModalOpen(false)} 
+      <ContactModal 
+        isOpen={isContactModalOpen} 
+        onClose={() => setIsContactModalOpen(false)} 
       />
     </>
   );
