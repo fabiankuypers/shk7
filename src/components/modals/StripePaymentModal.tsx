@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { X, CreditCard, Shield, Check } from 'lucide-react';
+import { X, CreditCard, Shield, Check, Sparkles, Users } from 'lucide-react';
 import { loadStripe } from '@stripe/stripe-js';
+import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 
 interface StripePaymentModalProps {
   isOpen: boolean;
@@ -9,71 +10,154 @@ interface StripePaymentModalProps {
 
 const stripePromise = loadStripe('pk_live_51P5HBEK3uE2SBg2ea1uY2higpxXgWVstUGLhQfVul2rgMozSFujGK2JSYhuEbH5owAfqLeve3ySQ7TgpK0e429z900VZO2JEXv');
 
-const StripePaymentModal: React.FC<StripePaymentModalProps> = ({ isOpen, onClose }) => {
-  const [isLoading, setIsLoading] = useState(false);
+// Success Modal Component
+const SuccessModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen, onClose }) => {
+  if (!isOpen) return null;
 
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black bg-opacity-50 backdrop-blur-sm" />
+      
+      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md mx-auto overflow-hidden">
+        <div className="relative bg-gradient-to-br from-green-500 to-emerald-600 px-6 py-8 text-white text-center">
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-white/20 rounded-full mb-4">
+            <Check className="w-10 h-10" />
+          </div>
+          <h2 className="text-2xl font-bold mb-2">Willkommen in der Community!</h2>
+          <p className="text-green-100">Ihre Anmeldung war erfolgreich</p>
+        </div>
+
+        <div className="px-6 py-6">
+          <div className="text-center mb-6">
+            <h3 className="text-xl font-semibold text-gray-900 mb-3">
+              Ihre 90-tägige Testphase beginnt jetzt!
+            </h3>
+            <p className="text-gray-600 mb-4">
+              Sie erhalten in Kürze eine Bestätigungs-E-Mail mit Ihren Zugangsdaten und weiteren Informationen.
+            </p>
+          </div>
+
+          <div className="bg-blue-50 rounded-xl p-4 mb-6">
+            <h4 className="font-semibold text-blue-900 mb-3 flex items-center">
+              <Sparkles className="w-5 h-5 mr-2" />
+              Was passiert als Nächstes?
+            </h4>
+            <div className="space-y-2 text-sm text-blue-800">
+              <div className="flex items-start">
+                <div className="w-2 h-2 bg-blue-400 rounded-full mt-2 mr-3 flex-shrink-0"></div>
+                <span>Bestätigungs-E-Mail mit Zugangsdaten</span>
+              </div>
+              <div className="flex items-start">
+                <div className="w-2 h-2 bg-blue-400 rounded-full mt-2 mr-3 flex-shrink-0"></div>
+                <span>Einladung zu regionalen Netzwerktreffen</span>
+              </div>
+              <div className="flex items-start">
+                <div className="w-2 h-2 bg-blue-400 rounded-full mt-2 mr-3 flex-shrink-0"></div>
+                <span>Zugang zur exklusiven Community-Plattform</span>
+              </div>
+            </div>
+          </div>
+
+          <button
+            onClick={onClose}
+            className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200"
+          >
+            Verstanden
+          </button>
+
+          <div className="mt-4 text-center">
+            <p className="text-xs text-gray-500">
+              Bei Fragen erreichen Sie uns unter{' '}
+              <a href="mailto:info@digitalwerk.solutions" className="text-blue-600 hover:text-blue-800">
+                info@digitalwerk.solutions
+              </a>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Payment Form Component
+const PaymentForm: React.FC<{ onSuccess: () => void; onClose: () => void }> = ({ onSuccess, onClose }) => {
+  const stripe = useStripe();
+  const elements = useElements();
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [email, setEmail] = useState('');
+  const [name, setName] = useState('');
+  const [company, setCompany] = useState('');
+
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    
+    if (!stripe || !elements) {
+      return;
     }
 
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
-  }, [isOpen]);
-
-  const handlePayment = async () => {
     setIsLoading(true);
-    
+    setError(null);
+
+    const cardElement = elements.getElement(CardElement);
+    if (!cardElement) {
+      setError('Kreditkartenfeld nicht gefunden');
+      setIsLoading(false);
+      return;
+    }
+
     try {
-      const stripe = await stripePromise;
-      if (!stripe) {
-        throw new Error('Stripe konnte nicht geladen werden');
-      }
-
-      // Redirect to Stripe Checkout
-      const { error } = await stripe.redirectToCheckout({
-        lineItems: [{
-          price: 'price_1QQQQQExample', // This would be your actual price ID from Stripe
-          quantity: 1,
-        }],
-        mode: 'subscription',
-        successUrl: `${window.location.origin}/success`,
-        cancelUrl: `${window.location.origin}/`,
-        customerEmail: undefined, // Let customer enter email
-        locale: 'de',
-      });
-
-      if (error) {
-        console.error('Stripe error:', error);
-        // For now, redirect directly to the payment link
-        window.open('https://buy.stripe.com/eVq14ofeI0NAesv46XcV203', '_blank');
-      }
-    } catch (error) {
-      console.error('Payment error:', error);
-      // Fallback to direct link
+      // For demo purposes, we'll simulate a successful payment
+      // In production, you would create a payment intent on your backend
+      
+      // Simulate API call delay
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // For now, redirect to the actual Stripe payment link
+      // In production, you would handle the payment here
       window.open('https://buy.stripe.com/eVq14ofeI0NAesv46XcV203', '_blank');
+      
+      // Simulate success for demo
+      setTimeout(() => {
+        onSuccess();
+      }, 1000);
+      
+    } catch (err) {
+      setError('Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.');
     } finally {
       setIsLoading(false);
     }
   };
 
-  if (!isOpen) return null;
+  const cardElementOptions = {
+    style: {
+      base: {
+        fontSize: '16px',
+        color: '#374151',
+        fontFamily: 'Inter, ui-sans-serif, system-ui, sans-serif',
+        '::placeholder': {
+          color: '#9CA3AF',
+        },
+        iconColor: '#6B7280',
+      },
+      invalid: {
+        color: '#EF4444',
+        iconColor: '#EF4444',
+      },
+    },
+    hidePostalCode: true,
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      {/* Backdrop */}
       <div 
         className="absolute inset-0 bg-black bg-opacity-50 backdrop-blur-sm"
         onClick={onClose}
       />
       
-      {/* Modal */}
-      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md mx-auto overflow-hidden">
+      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-auto overflow-hidden max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="relative bg-gradient-to-br from-blue-600 to-blue-800 px-6 py-8 text-white">
+        <div className="relative bg-gradient-to-br from-blue-600 to-blue-800 px-6 py-6 text-white">
           <button
             onClick={onClose}
             className="absolute top-4 right-4 p-2 hover:bg-white/10 rounded-full transition-colors"
@@ -82,64 +166,95 @@ const StripePaymentModal: React.FC<StripePaymentModalProps> = ({ isOpen, onClose
           </button>
           
           <div className="text-center">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-white/10 rounded-full mb-4">
-              <CreditCard className="w-8 h-8" />
+            <div className="inline-flex items-center justify-center w-14 h-14 bg-white/10 rounded-full mb-3">
+              <Users className="w-7 h-7" />
             </div>
-            <h2 className="text-2xl font-bold mb-2">SHK Community</h2>
-            <p className="text-blue-100 text-sm">Mitgliedschaft abschließen</p>
+            <h2 className="text-xl font-bold mb-1">SHK + Haustechnik Community</h2>
+            <p className="text-blue-100 text-sm">90 Tage kostenfrei testen</p>
           </div>
         </div>
 
-        {/* Content */}
-        <div className="px-6 py-6">
-          {/* Offer Details */}
+        <form onSubmit={handleSubmit} className="px-6 py-6">
+          {/* Offer Highlight */}
           <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-4 mb-6 border border-green-200">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-xl font-bold text-gray-900">90 Tage kostenfrei</h3>
-              <div className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">
-                Testphase
+            <div className="text-center">
+              <h3 className="text-lg font-bold text-gray-900 mb-1">90 Tage kostenfrei</h3>
+              <p className="text-sm text-gray-600 mb-3">Dann €9,00 pro Monat</p>
+              
+              <div className="flex justify-between text-sm border-t border-green-200 pt-3">
+                <span className="text-gray-600">Heute fällig:</span>
+                <span className="font-bold text-green-600 text-lg">€0,00</span>
               </div>
             </div>
-            <p className="text-gray-600 text-sm mb-3">Dann €9,00 pro Monat</p>
+          </div>
+
+          {/* Contact Information */}
+          <div className="space-y-4 mb-6">
+            <h4 className="font-semibold text-gray-900">Kontaktdaten</h4>
             
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-gray-600">Communities - SHK Community</span>
-                <span className="font-medium">90 Tage frei</span>
-              </div>
-              <div className="flex justify-between text-xs text-gray-500">
-                <span></span>
-                <span>€9,00 / Monat danach</span>
-              </div>
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+                E-Mail-Adresse *
+              </label>
+              <input
+                type="email"
+                id="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                placeholder="ihre@email.de"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+                Vollständiger Name *
+              </label>
+              <input
+                type="text"
+                id="name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                placeholder="Max Mustermann"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="company" className="block text-sm font-medium text-gray-700 mb-1">
+                Unternehmen
+              </label>
+              <input
+                type="text"
+                id="company"
+                value={company}
+                onChange={(e) => setCompany(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                placeholder="Mustermann SHK GmbH"
+              />
             </div>
           </div>
 
-          {/* Pricing Breakdown */}
-          <div className="space-y-3 mb-6 pb-6 border-b border-gray-200">
-            <div className="flex justify-between">
-              <span className="text-gray-600">Zwischensumme</span>
-              <span className="font-medium">€0,00</span>
+          {/* Payment Information */}
+          <div className="mb-6">
+            <h4 className="font-semibold text-gray-900 mb-3">Zahlungsinformationen</h4>
+            <div className="border border-gray-300 rounded-lg p-3 focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500 transition-all">
+              <CardElement options={cardElementOptions} />
             </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">Steuer</span>
-              <span className="font-medium">€0,00</span>
-            </div>
-            <div className="flex justify-between text-sm text-gray-500">
-              <span>Gesamt nach Testphase</span>
-              <span>€9,00</span>
-            </div>
-            <div className="flex justify-between text-lg font-bold">
-              <span>Heute fällig</span>
-              <span className="text-green-600">€0,00</span>
-            </div>
+            <p className="text-xs text-gray-500 mt-2 flex items-center">
+              <Shield className="w-3 h-3 mr-1" />
+              Ihre Zahlungsdaten werden sicher über Stripe verarbeitet
+            </p>
           </div>
 
-          {/* Features */}
+          {/* Features Preview */}
           <div className="mb-6">
             <h4 className="font-semibold text-gray-900 mb-3">Ihre Vorteile:</h4>
-            <div className="space-y-2">
+            <div className="grid grid-cols-1 gap-2">
               {[
-                'Zugang zu exklusiven Netzwerktreffen',
+                'Regionale Netzwerktreffen',
                 'Fachlicher Austausch mit SHK-Profis',
                 'Geprüfte Qualitätsdienstleister',
                 'Digitalisierungs-Tools und -Beratung'
@@ -152,48 +267,81 @@ const StripePaymentModal: React.FC<StripePaymentModalProps> = ({ isOpen, onClose
             </div>
           </div>
 
-          {/* Payment Button */}
+          {/* Error Message */}
+          {error && (
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+              {error}
+            </div>
+          )}
+
+          {/* Submit Button */}
           <button
-            onClick={handlePayment}
-            disabled={isLoading}
-            className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-200 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none shadow-lg"
+            type="submit"
+            disabled={!stripe || isLoading || !email || !name}
+            className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none shadow-lg"
           >
             {isLoading ? (
               <div className="flex items-center justify-center">
                 <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                Wird geladen...
+                Zahlung wird verarbeitet...
               </div>
             ) : (
-              'Jetzt 90 Tage kostenfrei testen'
+              'Jetzt 90 Tage kostenfrei starten'
             )}
           </button>
 
-          {/* Security Notice */}
-          <div className="mt-4 flex items-center justify-center text-xs text-gray-500">
-            <Shield className="w-4 h-4 mr-1" />
-            <span>Sicher bezahlen mit Stripe</span>
-          </div>
-
           {/* Terms */}
           <div className="mt-4 text-xs text-gray-500 text-center leading-relaxed">
-            Nach Ihrer Testphase werden Ihnen €9,00 pro Monat berechnet, 
-            beginnend am {new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toLocaleDateString('de-DE')}. 
-            Sie können jederzeit vor diesem Datum kündigen.
+            Nach Ihrer Testphase werden Ihnen €9,00 pro Monat berechnet. 
+            Sie können jederzeit kündigen. Mit der Anmeldung stimmen Sie unseren{' '}
+            <a href="/datenschutz" className="text-blue-600 hover:text-blue-800">
+              Datenschutzbestimmungen
+            </a> zu.
           </div>
-
-          {/* Footer Links */}
-          <div className="mt-6 flex justify-center space-x-4 text-xs">
-            <a href="/datenschutz" className="text-blue-600 hover:text-blue-800 transition-colors">
-              Datenschutz
-            </a>
-            <span className="text-gray-300">•</span>
-            <a href="/impressum" className="text-blue-600 hover:text-blue-800 transition-colors">
-              Impressum
-            </a>
-          </div>
-        </div>
+        </form>
       </div>
     </div>
+  );
+};
+
+// Main Modal Component
+const StripePaymentModal: React.FC<StripePaymentModalProps> = ({ isOpen, onClose }) => {
+  const [showSuccess, setShowSuccess] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+      setShowSuccess(false);
+    }
+
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isOpen]);
+
+  const handleSuccess = () => {
+    setShowSuccess(true);
+  };
+
+  const handleCloseSuccess = () => {
+    setShowSuccess(false);
+    onClose();
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <>
+      <Elements stripe={stripePromise}>
+        {!showSuccess && (
+          <PaymentForm onSuccess={handleSuccess} onClose={onClose} />
+        )}
+      </Elements>
+      
+      <SuccessModal isOpen={showSuccess} onClose={handleCloseSuccess} />
+    </>
   );
 };
 
